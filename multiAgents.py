@@ -82,18 +82,23 @@ class ReflexAgent(Agent):
             ghostDis = manhattanDistance(newPos, ghost.getPosition())
             if ghostDis is 0:
                 score -= 1000
-            if ghostDis < 3:
+            if ghostDis < 2:
                 score -=500
 
-        closestFood = 1000000
+        closestFoodDis = 1000000
+        closestFood = currentFood.asList()[0]
         for food in currentFood.asList():
             foodDis = manhattanDistance(newPos,food)
-            if foodDis < closestFood:
-                closestFood = foodDis
+            if foodDis < closestFoodDis:
+                closestFoodDis = foodDis
+                closesFood = food
             if foodDis is 0:
-                score += 50
-            score -= closestFood
+                score += 100
+            score -= closestFoodDis
         
+        if manhattanDistance(newPos, closestFood) < manhattanDistance(currentPos,closestFood):
+            score += 10
+
         return score
 
         return successorGameState.getScore()
@@ -157,7 +162,62 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
+        bestMove, bestScore = self.max(gameState, self.depth)
+        print(bestMove)
+        print()
+        print()
+        print()
+        print()
+        return bestMove
+
         util.raiseNotDefined()
+            
+    def min(self, gameState, depth):
+        if depth is 0 or gameState.isLose() or gameState.isWin():
+            # we've searched as far as we need to or the game ended 
+            return self.evaluationFunction(gameState)
+
+        moves = gameState.getLegalActions()
+        otherMoves, scores = [self.max(gameState.generateSuccessor(self.index, move), depth-1) for move in moves]
+        # print("scores: ",scores)
+        # print("moves: ", moves)
+        bestScore = scores[0]
+        bestScore = min(scores)
+        bestMove = moves[0]
+        for i in range(len(scores)):
+        #     print("current score: ", scores[i])
+        #     print("best score: ", bestScore)
+            if scores[i] == bestScore:
+                bestMove = moves[i]
+        # print(bestMove)
+        # print(bestScore)
+        # print()
+        # print()
+        return bestMove, bestScore
+
+    def max(self, gameState, depth):
+        if depth is 0 or gameState.isLose() or gameState.isWin():
+            # we've searched as far as we need to or the game ended
+            return self.evaluationFunction(gameState)
+
+        moves = gameState.getLegalActions()
+        scores = [self.min(gameState.generateSuccessor(self.index, move),depth-1) for move in moves]
+        # print("scores: ", scores)
+        # print("moves: ", moves)
+        bestScore = max(scores)
+        bestMove = moves[0]
+        for i in range(len(scores)):
+        #     print("current score: ", scores[i])
+        #     print("best score: ", bestScore)
+            if scores[i] == bestScore:
+                bestMove = moves[i]
+        # print(bestMove)
+        # print(bestScore)
+        # print()
+        # print()
+        return bestMove, bestScore
+
+
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
