@@ -169,7 +169,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
             return self.evaluationFunction(gameState)
         moves = gameState.getLegalActions(0) # pacman is always 0
         bestScore = float('-inf')
-        bestMove = 'no'
+        bestMove = moves[0]
         # print(moves)
         for move in moves: # move pacman
             score = self.min(gameState.generateSuccessor(0, move), depth, 1) # agent always 1, as this is the first enemy
@@ -187,7 +187,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         moves = gameState.getLegalActions(agent)
         # print(moves)
         bestScore = float('inf')
-        bestMove = 'no'
+        bestMove = moves[0]
         for move in moves:
             if agent == gameState.getNumAgents()-1: # gone through all enemy agents, time to move pacman
                 if depth == self.depth-1: # we are at max depth
@@ -213,6 +213,51 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
+        return self.max(gameState, 0, float('-inf'), float('inf'))
+            
+    # alter to include alpha beta 
+    def max(self, gameState, depth, alpha, beta):
+        if gameState.isWin() or gameState.isLose():
+            return self.evaluationFunction(gameState)
+        moves = gameState.getLegalActions(0) # pacman is always 0
+        bestScore = float('-inf')
+        bestMove = moves[0]
+        # print(moves)
+        for move in moves: # move pacman
+            score = self.min(gameState.generateSuccessor(0, move), depth, 1, alpha, beta) # agent always 1, as this is the first enemy
+            if score > bestScore:
+                bestScore = score
+                bestMove = move
+            alpha = max(alpha, bestScore)
+            if bestScore > beta:
+                return bestScore
+        if depth is 0:
+            return bestMove
+        else:
+            return bestScore
+    
+    # alter min function to include alpha, beta agents
+    def min(self, gameState, depth, agent, alpha, beta):
+        if gameState.isWin() or gameState.isLose():
+            return self.evaluationFunction(gameState)
+        moves = gameState.getLegalActions(agent)
+        # print(moves)
+        bestScore = float('inf')
+        bestMove = moves[0]
+        for move in moves:
+            if agent == gameState.getNumAgents()-1: # gone through all enemy agents, time to move pacman
+                if depth == self.depth-1: # we are at max depth
+                    score = self.evaluationFunction(gameState.generateSuccessor(agent, move))
+                else: # done with enemies, move down depth to next pacman move
+                    score = self.max(gameState.generateSuccessor(agent, move), depth+1, alpha, beta)
+            else: # still have enemies to move
+                score = self.min(gameState.generateSuccessor(agent, move), depth, agent+1, alpha, beta)
+            if score < bestScore:
+                bestScore = score
+            beta = min(beta, bestScore)
+            if bestScore < alpha:
+                return bestScore
+        return bestScore
         util.raiseNotDefined()
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
