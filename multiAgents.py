@@ -273,7 +273,42 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.max(gameState, 0)
+
+    def max(self, gameState, depth):
+        if gameState.isWin() or gameState.isLose():
+            return self.evaluationFunction(gameState)
+        moves = gameState.getLegalActions(0) # pacman is always 0
+        bestScore = float('-inf')
+        bestMove = moves[0]
+        # print(moves)
+        for move in moves: # move pacman
+            score = self.min(gameState.generateSuccessor(0, move), depth, 1) # agent always 1, as this is the first enemy
+            if score > bestScore:
+                bestScore = score
+                bestMove = move
+        if depth is 0:
+            return bestMove
+        else:
+            return bestScore
+    
+    def min(self, gameState, depth, agent):
+        if gameState.isWin() or gameState.isLose():
+            return self.evaluationFunction(gameState)
+        moves = gameState.getLegalActions(agent)
+        # print(moves)
+        bestScore = 0
+        bestMove = moves[0]
+        for move in moves:
+            if agent == gameState.getNumAgents()-1: # gone through all enemy agents, time to move pacman
+                if depth == self.depth-1: # we are at max depth
+                    score = self.evaluationFunction(gameState.generateSuccessor(agent, move))
+                else: # done with enemies, move down depth to next pacman move
+                    score = self.max(gameState.generateSuccessor(agent, move), depth+1)
+            else: # still have enemies to move
+                score = self.min(gameState.generateSuccessor(agent, move), depth, agent+1)
+            bestScore+=score
+        return bestScore/len(moves)
 
 def betterEvaluationFunction(currentGameState):
     """
