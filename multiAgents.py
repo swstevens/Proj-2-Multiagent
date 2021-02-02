@@ -162,74 +162,45 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        bestMove, bestScore = self.max(gameState, self.depth)
-        print(bestMove)
-        # print()
-        # print()
-        # print()
-        # print()
-        return bestMove
-
-        util.raiseNotDefined()
-            
-    def min(self, gameState, agents, depth):
-        if depth is 0 or gameState.isLose() or gameState.isWin():
-            # we've searched as far as we need to or the game ended 
-            return gameState.getScore()
-
-        moves = gameState.getLegalActions(agents)
-        if agents == gameState.getNumAgents()-1: 
-            scores = [self.max(gameState.generateSuccessor(self.index, move), depth-1) for move in moves]
-        else:
-            scores = [self.min(gameState.generateSuccessor(self.index, move), agents +1, depth-1) for move in moves]
-        # print("scores: ",scores, len(scores))
-        for i in range(len(scores)):
-            if type(scores[i]) is tuple:
-                scores[i] = scores[i][1]
-        # print("scores: ", scores, len(scores))
-        # print("moves: ", moves)
-        bestScore = min(scores)
-
-        bestMove = moves[0]
-        for i in range(len(scores)):
-        #     print("current score: ", scores[i])
-        #     print("best score: ", bestScore)
-            if scores[i] == bestScore:
-                bestMove = moves[i]
-        # print(bestMove)
-        # print(bestScore)
-        # print()
-        # print()
-        return bestMove, bestScore
+        return self.max(gameState, 0)
 
     def max(self, gameState, depth):
-        if depth is 0 or gameState.isLose() or gameState.isWin():
-            # we've searched as far as we need to or the game ended
-            return gameState.getScore()
+        if gameState.isWin() or gameState.isLose():
+            return self.evaluationFunction(gameState)
+        moves = gameState.getLegalActions(0) # pacman is always 0
+        bestScore = float('-inf')
+        bestMove = 'no'
+        # print(moves)
+        for move in moves: # move pacman
+            score = self.min(gameState.generateSuccessor(0, move), depth, 1) # agent always 1, as this is the first enemy
+            if score > bestScore:
+                bestScore = score
+                bestMove = move
+        if depth is 0:
+            return bestMove
+        else:
+            return bestScore
+    
+    def min(self, gameState, depth, agent):
+        if gameState.isWin() or gameState.isLose():
+            return self.evaluationFunction(gameState)
+        moves = gameState.getLegalActions(agent)
+        # print(moves)
+        bestScore = float('inf')
+        bestMove = 'no'
+        for move in moves:
+            if agent == gameState.getNumAgents()-1: # gone through all enemy agents, time to move pacman
+                if depth == self.depth-1: # we are at max depth
+                    score = self.evaluationFunction(gameState.generateSuccessor(agent, move))
+                else: # done with enemies, move down depth to next pacman move
+                    score = self.max(gameState.generateSuccessor(agent, move), depth+1)
+            else: # still have enemies to move
+                score = self.min(gameState.generateSuccessor(agent, move), depth, agent+1)
+            if score < bestScore:
+                bestScore = score
+        return bestScore
 
-        moves = gameState.getLegalActions(0)
-        scores = [self.min(gameState.generateSuccessor(self.index, move), 1, depth-1) for move in moves]
-        # print("scores: ", scores, len(scores))
-        for i in range(len(scores)):
-            if type(scores[i]) is tuple:
-                scores[i] = scores[i][1]
-        # print("scores: ", scores, len(scores))
-        # print("moves: ", moves)
-
-        bestScore = max(scores)
-
-        bestMove = moves[0]
-        for i in range(len(scores)):
-        #     print("current score: ", scores[i])
-        #     print("best score: ", bestScore)
-            if scores[i] == bestScore:
-                bestMove = moves[i]
-        # print(bestMove)
-        # print(bestScore)
-        # print()
-        # print()
-        return bestMove, bestScore
-
+                
 
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
