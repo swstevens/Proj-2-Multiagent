@@ -163,11 +163,11 @@ class MinimaxAgent(MultiAgentSearchAgent):
         """
         "*** YOUR CODE HERE ***"
         bestMove, bestScore = self.max(gameState, self.depth)
-        print(bestMove)
-        print()
-        print()
-        print()
-        print()
+        # print(bestMove)
+        # print()
+        # print()
+        # print()
+        # print()
         return bestMove
 
         util.raiseNotDefined()
@@ -178,11 +178,15 @@ class MinimaxAgent(MultiAgentSearchAgent):
             return self.evaluationFunction(gameState)
 
         moves = gameState.getLegalActions()
-        otherMoves, scores = [self.max(gameState.generateSuccessor(self.index, move), depth-1) for move in moves]
-        # print("scores: ",scores)
+        scores = [self.max(gameState.generateSuccessor(self.index, move), depth-1) for move in moves]
+        # print("scores: ",scores, len(scores))
+        for i in range(len(scores)):
+            if type(scores[i]) is tuple:
+                scores[i] = scores[i][1]
+        # print("scores: ", scores, len(scores))
         # print("moves: ", moves)
-        bestScore = scores[0]
         bestScore = min(scores)
+
         bestMove = moves[0]
         for i in range(len(scores)):
         #     print("current score: ", scores[i])
@@ -202,9 +206,15 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
         moves = gameState.getLegalActions()
         scores = [self.min(gameState.generateSuccessor(self.index, move),depth-1) for move in moves]
-        # print("scores: ", scores)
+        # print("scores: ", scores, len(scores))
+        for i in range(len(scores)):
+            if type(scores[i]) is tuple:
+                scores[i] = scores[i][1]
+        # print("scores: ", scores, len(scores))
         # print("moves: ", moves)
+
         bestScore = max(scores)
+
         bestMove = moves[0]
         for i in range(len(scores)):
         #     print("current score: ", scores[i])
