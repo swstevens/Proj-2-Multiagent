@@ -275,6 +275,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         "*** YOUR CODE HERE ***"
         return self.max(gameState, 0)
 
+    # max function is the same, since we are the one making the decision for pacman's move
     def max(self, gameState, depth):
         if gameState.isWin() or gameState.isLose():
             return self.evaluationFunction(gameState)
@@ -292,6 +293,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         else:
             return bestScore
     
+    # expectimax now takes an average of all known moves
     def min(self, gameState, depth, agent):
         if gameState.isWin() or gameState.isLose():
             return self.evaluationFunction(gameState)
