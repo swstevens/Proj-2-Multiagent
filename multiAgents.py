@@ -82,7 +82,7 @@ class ReflexAgent(Agent):
             ghostDis = manhattanDistance(newPos, ghost.getPosition())
             if ghostDis is 0:
                 score -= 1000
-            if ghostDis < 2:
+            if ghostDis < 3:
                 score -=500
 
         closestFoodDis = 1000000
@@ -163,7 +163,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         """
         "*** YOUR CODE HERE ***"
         bestMove, bestScore = self.max(gameState, self.depth)
-        # print(bestMove)
+        print(bestMove)
         # print()
         # print()
         # print()
@@ -172,13 +172,16 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
         util.raiseNotDefined()
             
-    def min(self, gameState, depth):
+    def min(self, gameState, agents, depth):
         if depth is 0 or gameState.isLose() or gameState.isWin():
             # we've searched as far as we need to or the game ended 
-            return self.evaluationFunction(gameState)
+            return gameState.getScore()
 
-        moves = gameState.getLegalActions()
-        scores = [self.max(gameState.generateSuccessor(self.index, move), depth-1) for move in moves]
+        moves = gameState.getLegalActions(agents)
+        if agents == gameState.getNumAgents()-1: 
+            scores = [self.max(gameState.generateSuccessor(self.index, move), depth-1) for move in moves]
+        else:
+            scores = [self.min(gameState.generateSuccessor(self.index, move), agents +1, depth-1) for move in moves]
         # print("scores: ",scores, len(scores))
         for i in range(len(scores)):
             if type(scores[i]) is tuple:
@@ -202,10 +205,10 @@ class MinimaxAgent(MultiAgentSearchAgent):
     def max(self, gameState, depth):
         if depth is 0 or gameState.isLose() or gameState.isWin():
             # we've searched as far as we need to or the game ended
-            return self.evaluationFunction(gameState)
+            return gameState.getScore()
 
-        moves = gameState.getLegalActions()
-        scores = [self.min(gameState.generateSuccessor(self.index, move),depth-1) for move in moves]
+        moves = gameState.getLegalActions(0)
+        scores = [self.min(gameState.generateSuccessor(self.index, move), 1, depth-1) for move in moves]
         # print("scores: ", scores, len(scores))
         for i in range(len(scores)):
             if type(scores[i]) is tuple:
@@ -264,7 +267,37 @@ def betterEvaluationFunction(currentGameState):
     DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    successorGameState = currentGameState.generatePacmanSuccessor(action)
+    newPos = successorGameState.getPacmanPosition()
+    newFood = successorGameState.getFood()
+    newGhostStates = successorGameState.getGhostStates()
+    newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+    currentPos = currentGameState.getPacmanPosition()
+    currentFood = currentGameState.getFood()
+    score = 0
+
+    for ghost in newGhostStates:
+        ghostDis = manhattanDistance(newPos, ghost.getPosition())
+        if ghostDis is 0:
+            score -= 1000
+        if ghostDis < 3:
+            score -=500
+
+    closestFoodDis = 1000000
+    closestFood = currentFood.asList()[0]
+    for food in currentFood.asList():
+        foodDis = manhattanDistance(newPos,food)
+        if foodDis < closestFoodDis:
+            closestFoodDis = foodDis
+            closesFood = food
+        if foodDis is 0:
+            score += 100
+        score -= closestFoodDis
+    
+    if manhattanDistance(newPos, closestFood) < manhattanDistance(currentPos,closestFood):
+        score += 10
+
+    return score
 
 # Abbreviation
 better = betterEvaluationFunction
