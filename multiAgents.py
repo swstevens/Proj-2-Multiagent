@@ -318,20 +318,43 @@ def betterEvaluationFunction(currentGameState):
     evaluation function (question 5).
 
     DESCRIPTION: <write something here so we know what you did>
+
+    Current Evaluation function interacts with:
+    pellets
+
+    Does not interact with:
+    ghosts (scared/unscared)
+    power pellets (named capsules)
+
+    current evaluation function also sometimes just gets stuck, since not moving is just about as good as nothing
+    run the following command to see
+    python pacman.py --frameTime 0 -p ReflexAgent -k 2
     """
     "*** YOUR CODE HERE ***"
-    successorGameState = currentGameState.generatePacmanSuccessor(action)
-    newPos = successorGameState.getPacmanPosition()
-    newFood = successorGameState.getFood()
-    newGhostStates = successorGameState.getGhostStates()
-    newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+
+    # since an action is no longer given as in the original evaluation function, things might be different for calculating
+    # good reflex agent scores
+
+    newFood = currentGameState.getFood()
+    newGhostStates = currentGameState.getGhostStates()
     currentPos = currentGameState.getPacmanPosition()
     currentFood = currentGameState.getFood()
     score = 0
+    
+    # capsules, more valuable than pellets, in order to chase ghosts
+    capsules = currentGameState.getCapsules()
+    for capsule in capsules:
+        capsuleDis = manhattanDistance(currentPos,capsule)
+        if capsuleDis <= 1:
+            score += 200
+        if capsuleDis < 3:
+            score += 20
+    
 
+    # need to add whether the ghost is scared or not
     for ghost in newGhostStates:
-        ghostDis = manhattanDistance(newPos, ghost.getPosition())
-        if ghostDis is 0:
+        ghostDis = manhattanDistance(currentPos, ghost.getPosition())
+        if ghostDis <= 1:
             score -= 1000
         if ghostDis < 3:
             score -=500
@@ -339,16 +362,16 @@ def betterEvaluationFunction(currentGameState):
     closestFoodDis = 1000000
     closestFood = currentFood.asList()[0]
     for food in currentFood.asList():
-        foodDis = manhattanDistance(newPos,food)
+        foodDis = manhattanDistance(currentPos,food)
         if foodDis < closestFoodDis:
             closestFoodDis = foodDis
-            closesFood = food
-        if foodDis is 0:
+            closestFood = food
+        if foodDis < 3:
+            score += 10
+        if foodDis <= 1:
             score += 100
         score -= closestFoodDis
-    
-    if manhattanDistance(newPos, closestFood) < manhattanDistance(currentPos,closestFood):
-        score += 10
+
 
     return score
 
