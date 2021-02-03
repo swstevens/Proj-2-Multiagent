@@ -317,18 +317,16 @@ def betterEvaluationFunction(currentGameState):
     Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
     evaluation function (question 5).
 
-    DESCRIPTION: <write something here so we know what you did>
+    DESCRIPTION: 
+    Score can be earned by minimizing the sum of distance to all food by either 
+    1. eating pellets, reducing the effective food being tracked, or
+    2. moving closer to pellets
 
-    Current Evaluation function interacts with:
-    pellets
-
-    Does not interact with:
-    ghosts (scared/unscared)
-    power pellets (named capsules)
-
-    current evaluation function also sometimes just gets stuck, since not moving is just about as good as nothing
-    run the following command to see
-    python pacman.py --frameTime 0 -p ReflexAgent -k 2
+    Additional score is earned based on how close Pacman is to all of the ghosts. 
+    While Pacman is under the effect of his power pellet and the sum of scared time 
+    is >0, minimizing this distance will increase score, encouraging the ghosts to be eaten. 
+    Alteratively, while this powerup is inactive and Pacman can be killed by the ghosts,
+    maximizing this distance will add the greatest amount of points. 
     """
     "*** YOUR CODE HERE ***"
 
@@ -337,41 +335,34 @@ def betterEvaluationFunction(currentGameState):
 
     newFood = currentGameState.getFood()
     newGhostStates = currentGameState.getGhostStates()
+    newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
     currentPos = currentGameState.getPacmanPosition()
     currentFood = currentGameState.getFood()
-    score = 0
     
-    # capsules, more valuable than pellets, in order to chase ghosts
-    capsules = currentGameState.getCapsules()
-    for capsule in capsules:
-        capsuleDis = manhattanDistance(currentPos,capsule)
-        if capsuleDis <= 1:
-            score += 200
-        if capsuleDis < 3:
-            score += 20
-    
+    # First priority, all food is gone = win
+    sumFoodDistance = 0
+    for food in newFood.asList():
+        sumFoodDistance += manhattanDistance(currentPos, food)
 
-    # need to add whether the ghost is scared or not
+    # Find dist from ghosts
+    sumGhostDistance = 0
     for ghost in newGhostStates:
-        ghostDis = manhattanDistance(currentPos, ghost.getPosition())
-        if ghostDis <= 1:
-            score -= 1000
-        if ghostDis < 3:
-            score -=500
+        sumGhostDistance += manhattanDistance(currentPos, ghost.getPosition())
 
-    closestFoodDis = 1000000
-    closestFood = currentFood.asList()[0]
-    for food in currentFood.asList():
-        foodDis = manhattanDistance(currentPos,food)
-        if foodDis < closestFoodDis:
-            closestFoodDis = foodDis
-            closestFood = food
-        if foodDis < 3:
-            score += 10
-        if foodDis <= 1:
-            score += 100
-        score -= closestFoodDis
 
+    score = currentGameState.getScore()
+    if sumFoodDistance > 0: 
+        # lower = better
+        score += (1 / sumFoodDistance)
+
+    # Check for powerup 
+    if sum(newScaredTimes) > 0:
+        score += sum(newScaredTimes)
+        # lower = better w/ Powerup
+        score += (1 / sumGhostDistance) 
+    else:
+        # higher = better wo/ Powerup
+        score += sumGhostDistance
 
     return score
 
